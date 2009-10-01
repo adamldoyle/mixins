@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>mixins.views</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+      <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="mixins-module.html">Package&nbsp;mixins</a> ::
+        Module&nbsp;views
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="mixins.views-pysrc.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="mixins.views-module.html">Module mixins.views</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno">  1</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">django</tt><tt class="py-op">.</tt><tt class="py-name">utils</tt> <tt class="py-keyword">import</tt> <tt class="py-name">simplejson</tt> </tt>
+<a name="L2"></a><tt class="py-lineno">  2</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">django</tt><tt class="py-op">.</tt><tt class="py-name">utils</tt><tt class="py-op">.</tt><tt class="py-name">html</tt> <tt class="py-keyword">import</tt> <tt id="link-0" class="py-name" targets="Function re.escape()=re-module.html#escape"><a title="re.escape" class="py-name" href="#" onclick="return doclink('link-0', 'escape', 'link-0');">escape</a></tt> </tt>
+<a name="L3"></a><tt class="py-lineno">  3</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">django</tt><tt class="py-op">.</tt><tt class="py-name">contrib</tt><tt class="py-op">.</tt><tt class="py-name">contenttypes</tt><tt class="py-op">.</tt><tt id="link-1" class="py-name" targets="Module mixins.models=mixins.models-module.html"><a title="mixins.models" class="py-name" href="#" onclick="return doclink('link-1', 'models', 'link-1');">models</a></tt> <tt class="py-keyword">import</tt> <tt class="py-name">ContentType</tt> </tt>
+<a name="L4"></a><tt class="py-lineno">  4</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">django</tt><tt class="py-op">.</tt><tt class="py-name">http</tt> <tt class="py-keyword">import</tt> <tt class="py-name">HttpResponse</tt> </tt>
+<a name="L5"></a><tt class="py-lineno">  5</tt>  <tt class="py-line"> </tt>
+<a name="autosuggest"></a><div id="autosuggest-def"><a name="L6"></a><tt class="py-lineno">  6</tt> <a class="py-toggle" href="#" id="autosuggest-toggle" onclick="return toggle('autosuggest');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="mixins.views-module.html#autosuggest">autosuggest</a><tt class="py-op">(</tt><tt class="py-param">request</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="autosuggest-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="autosuggest-expanded"><a name="L7"></a><tt class="py-lineno">  7</tt>  <tt class="py-line">    <tt class="py-docstring">"""Accepts a GET request (usually AJAX) and returns a JSON object containing a list of matching instances.</tt> </tt>
+<a name="L8"></a><tt class="py-lineno">  8</tt>  <tt class="py-line"><tt class="py-docstring">    </tt> </tt>
+<a name="L9"></a><tt class="py-lineno">  9</tt>  <tt class="py-line"><tt class="py-docstring">    GET keys:</tt> </tt>
+<a name="L10"></a><tt class="py-lineno"> 10</tt>  <tt class="py-line"><tt class="py-docstring">        contenttype: takes form of app__model (required).</tt> </tt>
+<a name="L11"></a><tt class="py-lineno"> 11</tt>  <tt class="py-line"><tt class="py-docstring">        usertext: partial text user has typed in (required).</tt> </tt>
+<a name="L12"></a><tt class="py-lineno"> 12</tt>  <tt class="py-line"><tt class="py-docstring">        field: text to return in result for model.  If not given, will use autosuggest_field from model. One of the two must be present.</tt> </tt>
+<a name="L13"></a><tt class="py-lineno"> 13</tt>  <tt class="py-line"><tt class="py-docstring">        requirebeginning: if True, user text will only be matched against the beginning of the word.</tt> </tt>
+<a name="L14"></a><tt class="py-lineno"> 14</tt>  <tt class="py-line"><tt class="py-docstring">        user_only: limit results to those whose user field matches the current user.</tt> </tt>
+<a name="L15"></a><tt class="py-lineno"> 15</tt>  <tt class="py-line"><tt class="py-docstring">        filter_&lt;model_field&gt;=&lt;filter_value&gt;: filter the results on the provided fields (can provide 0 or more).</tt> </tt>
+<a name="L16"></a><tt class="py-lineno"> 16</tt>  <tt class="py-line"><tt class="py-docstring">        </tt> </tt>
+<a name="L17"></a><tt class="py-lineno"> 17</tt>  <tt class="py-line"><tt class="py-docstring">    Each result in return contains:</tt> </tt>
+<a name="L18"></a><tt class="py-lineno"> 18</tt>  <tt class="py-line"><tt class="py-docstring">        id: id of model.</tt> </tt>
+<a name="L19"></a><tt class="py-lineno"> 19</tt>  <tt class="py-line"><tt class="py-docstring">        value: text for the model to display (e.g. title)</tt> </tt>
+<a name="L20"></a><tt class="py-lineno"> 20</tt>  <tt class="py-line"><tt class="py-docstring">        url: absolute url for model (must implement get_absolute_url on model). </tt> </tt>
+<a name="L21"></a><tt class="py-lineno"> 21</tt>  <tt class="py-line"><tt class="py-docstring">        </tt> </tt>
+<a name="L22"></a><tt class="py-lineno"> 22</tt>  <tt class="py-line"><tt class="py-docstring">    Will try first to only return global/user matching results, if that fails it'll return all matching.</tt> </tt>
+<a name="L23"></a><tt class="py-lineno"> 23</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+<a name="L24"></a><tt class="py-lineno"> 24</tt>  <tt class="py-line">    <tt class="py-name">results</tt> <tt class="py-op">=</tt> <tt class="py-op">{</tt><tt class="py-string">'results'</tt><tt class="py-op">:</tt> <tt class="py-op">[</tt><tt class="py-op">]</tt><tt class="py-op">}</tt> </tt>
+<a name="L25"></a><tt class="py-lineno"> 25</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt class="py-name">request</tt><tt class="py-op">.</tt><tt class="py-name">GET</tt><tt class="py-op">.</tt><tt class="py-name">has_key</tt><tt class="py-op">(</tt><tt class="py-string">'contenttype'</tt><tt class="py-op">)</tt> <tt class="py-keyword">and</tt> <tt class="py-name">request</tt><tt class="py-op">.</tt><tt class="py-name">GET</tt><tt class="py-op">.</tt><tt class="py-name">has_key</tt><tt class="py-op">(</tt><tt class="py-string">'usertext'</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L26"></a><tt class="py-lineno"> 26</tt>  <tt class="py-line">        <tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
+<a name="L27"></a><tt class="py-lineno"> 27</tt>  <tt class="py-line">            <tt class="py-name">app_label</tt><tt class="py-op">,</tt> <tt class="py-name">model</tt> <tt class="py-op">=</tt> <tt class="py-name">request</tt><tt class="py-op">.</tt><tt class="py-name">GET</tt><tt class="py-op">[</tt><tt class="py-string">'contenttype'</tt><tt class="py-op">]</tt><tt class="py-op">.</tt><tt id="link-2" class="py-name" targets="Function re.split()=re-module.html#split"><a title="re.split" class="py-name" href="#" onclick="return doclink('link-2', 'split', 'link-2');">split</a></tt><tt class="py-op">(</tt><tt class="py-string">'__'</tt><tt class="py-op">)</tt> </tt>
+<a name="L28"></a><tt class="py-lineno"> 28</tt>  <tt class="py-line">            <tt class="py-name">ct</tt> <tt class="py-op">=</tt> <tt class="py-name">ContentType</tt><tt class="py-op">.</tt><tt id="link-3" class="py-name" targets="Variable mixins.models.BaseMixin.objects=mixins.models.BaseMixin-class.html#objects"><a title="mixins.models.BaseMixin.objects" class="py-name" href="#" onclick="return doclink('link-3', 'objects', 'link-3');">objects</a></tt><tt class="py-op">.</tt><tt class="py-name">get</tt><tt class="py-op">(</tt><tt class="py-name">app_label</tt><tt class="py-op">=</tt><tt class="py-name">app_label</tt><tt class="py-op">,</tt> <tt class="py-name">model</tt><tt class="py-op">=</tt><tt class="py-name">model</tt><tt class="py-op">)</tt> </tt>
+<a name="L29"></a><tt class="py-lineno"> 29</tt>  <tt class="py-line">            <tt class="py-name">usertext</tt> <tt class="py-op">=</tt> <tt class="py-name">request</tt><tt class="py-op">.</tt><tt class="py-name">GET</tt><tt class="py-op">[</tt><tt class="py-string">'usertext'</tt><tt class="py-op">]</tt> </tt>
+<a name="L30"></a><tt class="py-lineno"> 30</tt>  <tt class="py-line">            <tt class="py-name">field</tt> <tt class="py-op">=</tt> <tt class="py-name">request</tt><tt class="py-op">.</tt><tt class="py-name">GET</tt><tt class="py-op">.</tt><tt class="py-name">get</tt><tt class="py-op">(</tt><tt class="py-string">'field'</tt><tt class="py-op">,</tt> <tt class="py-name">ct</tt><tt class="py-op">.</tt><tt class="py-name">model_class</tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt id="link-4" class="py-name" targets="Variable mixins.models.AutosuggestMixin.autosuggest_field=mixins.models.AutosuggestMixin-class.html#autosuggest_field"><a title="mixins.models.AutosuggestMixin.autosuggest_field" class="py-name" href="#" onclick="return doclink('link-4', 'autosuggest_field', 'link-4');">autosuggest_field</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L31"></a><tt class="py-lineno"> 31</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">request</tt><tt class="py-op">.</tt><tt class="py-name">GET</tt><tt class="py-op">.</tt><tt class="py-name">has_key</tt><tt class="py-op">(</tt><tt class="py-string">'requirebeginning'</tt><tt class="py-op">)</tt> <tt class="py-keyword">and</tt> <tt class="py-name">request</tt><tt class="py-op">.</tt><tt class="py-name">GET</tt><tt class="py-op">[</tt><tt class="py-string">'requirebeginning'</tt><tt class="py-op">]</tt><tt class="py-op">:</tt> </tt>
+<a name="L32"></a><tt class="py-lineno"> 32</tt>  <tt class="py-line">                <tt class="py-name">kwargs</tt> <tt class="py-op">=</tt> <tt class="py-op">{</tt> <tt class="py-name">str</tt><tt class="py-op">(</tt><tt class="py-name">field</tt> <tt class="py-op">+</tt> <tt class="py-string">'__istartswith'</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> <tt class="py-name">str</tt><tt class="py-op">(</tt><tt class="py-name">usertext</tt><tt class="py-op">)</tt> <tt class="py-op">}</tt> </tt>
+<a name="L33"></a><tt class="py-lineno"> 33</tt>  <tt class="py-line">            <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L34"></a><tt class="py-lineno"> 34</tt>  <tt class="py-line">                <tt class="py-name">kwargs</tt> <tt class="py-op">=</tt> <tt class="py-op">{</tt> <tt class="py-name">str</tt><tt class="py-op">(</tt><tt class="py-name">field</tt> <tt class="py-op">+</tt> <tt class="py-string">'__icontains'</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> <tt class="py-name">str</tt><tt class="py-op">(</tt><tt class="py-name">usertext</tt><tt class="py-op">)</tt> <tt class="py-op">}</tt> </tt>
+<a name="L35"></a><tt class="py-lineno"> 35</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">request</tt><tt class="py-op">.</tt><tt class="py-name">GET</tt><tt class="py-op">.</tt><tt class="py-name">has_key</tt><tt class="py-op">(</tt><tt class="py-string">'user_only'</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L36"></a><tt class="py-lineno"> 36</tt>  <tt class="py-line">                <tt class="py-name">kwargs</tt><tt class="py-op">[</tt><tt class="py-string">'user'</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-name">request</tt><tt class="py-op">.</tt><tt id="link-5" class="py-name" targets="Variable mixins.models.UserMixin.user=mixins.models.UserMixin-class.html#user"><a title="mixins.models.UserMixin.user" class="py-name" href="#" onclick="return doclink('link-5', 'user', 'link-5');">user</a></tt> </tt>
+<a name="L37"></a><tt class="py-lineno"> 37</tt>  <tt class="py-line">            <tt class="py-keyword">for</tt> <tt class="py-name">key</tt><tt class="py-op">,</tt> <tt class="py-name">value</tt> <tt class="py-keyword">in</tt> <tt class="py-name">request</tt><tt class="py-op">.</tt><tt class="py-name">GET</tt><tt class="py-op">.</tt><tt class="py-name">iteritems</tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L38"></a><tt class="py-lineno"> 38</tt>  <tt class="py-line">                <tt class="py-keyword">if</tt> <tt class="py-name">key</tt><tt class="py-op">.</tt><tt class="py-name">find</tt><tt class="py-op">(</tt><tt class="py-string">'filter_'</tt><tt class="py-op">)</tt> <tt class="py-op">==</tt> <tt class="py-number">0</tt><tt class="py-op">:</tt> </tt>
+<a name="L39"></a><tt class="py-lineno"> 39</tt>  <tt class="py-line">                    <tt class="py-name">key</tt> <tt class="py-op">=</tt> <tt class="py-name">str</tt><tt class="py-op">(</tt><tt class="py-name">key</tt><tt class="py-op">[</tt><tt class="py-number">7</tt><tt class="py-op">:</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+<a name="L40"></a><tt class="py-lineno"> 40</tt>  <tt class="py-line">                    <tt class="py-keyword">if</tt> <tt class="py-name">value</tt> <tt class="py-op">==</tt> <tt class="py-string">"None"</tt><tt class="py-op">:</tt> </tt>
+<a name="L41"></a><tt class="py-lineno"> 41</tt>  <tt class="py-line">                        <tt class="py-name">value</tt> <tt class="py-op">=</tt> <tt class="py-name">None</tt> </tt>
+<a name="L42"></a><tt class="py-lineno"> 42</tt>  <tt class="py-line">                    <tt class="py-name">kwargs</tt><tt class="py-op">[</tt><tt class="py-name">key</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-name">value</tt> </tt>
+<a name="L43"></a><tt class="py-lineno"> 43</tt>  <tt class="py-line">            <tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
+<a name="L44"></a><tt class="py-lineno"> 44</tt>  <tt class="py-line">                <tt id="link-6" class="py-name"><a title="mixins.models.BaseMixin.objects" class="py-name" href="#" onclick="return doclink('link-6', 'objects', 'link-3');">objects</a></tt> <tt class="py-op">=</tt> <tt class="py-name">ct</tt><tt class="py-op">.</tt><tt class="py-name">model_class</tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt id="link-7" class="py-name"><a title="mixins.models.BaseMixin.objects" class="py-name" href="#" onclick="return doclink('link-7', 'objects', 'link-3');">objects</a></tt><tt class="py-op">.</tt><tt class="py-name">filter</tt><tt class="py-op">(</tt><tt class="py-op">**</tt><tt class="py-name">kwargs</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt id="link-8" class="py-name" targets="Method mixins.models.BaseMixin.MixinQuerySet.globals()=mixins.models.BaseMixin.MixinQuerySet-class.html#globals"><a title="mixins.models.BaseMixin.MixinQuerySet.globals" class="py-name" href="#" onclick="return doclink('link-8', 'globals', 'link-8');">globals</a></tt><tt class="py-op">(</tt><tt class="py-name">request</tt><tt class="py-op">.</tt><tt id="link-9" class="py-name"><a title="mixins.models.UserMixin.user" class="py-name" href="#" onclick="return doclink('link-9', 'user', 'link-5');">user</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L45"></a><tt class="py-lineno"> 45</tt>  <tt class="py-line">            <tt class="py-keyword">except</tt> <tt class="py-name">AttributeError</tt><tt class="py-op">:</tt> </tt>
+<a name="L46"></a><tt class="py-lineno"> 46</tt>  <tt class="py-line">                <tt id="link-10" class="py-name"><a title="mixins.models.BaseMixin.objects" class="py-name" href="#" onclick="return doclink('link-10', 'objects', 'link-3');">objects</a></tt> <tt class="py-op">=</tt> <tt class="py-name">ct</tt><tt class="py-op">.</tt><tt class="py-name">model_class</tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt id="link-11" class="py-name"><a title="mixins.models.BaseMixin.objects" class="py-name" href="#" onclick="return doclink('link-11', 'objects', 'link-3');">objects</a></tt><tt class="py-op">.</tt><tt class="py-name">filter</tt><tt class="py-op">(</tt><tt class="py-op">**</tt><tt class="py-name">kwargs</tt><tt class="py-op">)</tt> </tt>
+<a name="L47"></a><tt class="py-lineno"> 47</tt>  <tt class="py-line">            <tt class="py-keyword">for</tt> <tt class="py-name">object</tt> <tt class="py-keyword">in</tt> <tt id="link-12" class="py-name"><a title="mixins.models.BaseMixin.objects" class="py-name" href="#" onclick="return doclink('link-12', 'objects', 'link-3');">objects</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L48"></a><tt class="py-lineno"> 48</tt>  <tt class="py-line">                <tt class="py-name">result_row</tt> <tt class="py-op">=</tt> <tt class="py-op">{</tt><tt class="py-string">'id'</tt><tt class="py-op">:</tt> <tt class="py-name">object</tt><tt class="py-op">.</tt><tt class="py-name">id</tt><tt class="py-op">,</tt> <tt class="py-string">'value'</tt><tt class="py-op">:</tt> <tt class="py-name">str</tt><tt class="py-op">(</tt><tt id="link-13" class="py-name"><a title="re.escape" class="py-name" href="#" onclick="return doclink('link-13', 'escape', 'link-0');">escape</a></tt><tt class="py-op">(</tt><tt class="py-name">getattr</tt><tt class="py-op">(</tt><tt class="py-name">object</tt><tt class="py-op">,</tt> <tt class="py-name">field</tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-string">'url'</tt><tt class="py-op">:</tt> <tt class="py-name">object</tt><tt class="py-op">.</tt><tt class="py-name">get_absolute_url</tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">}</tt> </tt>
+<a name="L49"></a><tt class="py-lineno"> 49</tt>  <tt class="py-line">                <tt class="py-name">results</tt><tt class="py-op">[</tt><tt class="py-string">'results'</tt><tt class="py-op">]</tt><tt class="py-op">.</tt><tt class="py-name">append</tt><tt class="py-op">(</tt><tt class="py-name">result_row</tt><tt class="py-op">)</tt> </tt>
+<a name="L50"></a><tt class="py-lineno"> 50</tt>  <tt class="py-line">        <tt class="py-keyword">except</tt> <tt class="py-name">ContentType</tt><tt class="py-op">.</tt><tt class="py-name">DoesNotExist</tt><tt class="py-op">:</tt> </tt>
+<a name="L51"></a><tt class="py-lineno"> 51</tt>  <tt class="py-line">            <tt class="py-keyword">pass</tt> </tt>
+<a name="L52"></a><tt class="py-lineno"> 52</tt>  <tt class="py-line">    <tt class="py-name">serialized</tt> <tt class="py-op">=</tt> <tt class="py-name">simplejson</tt><tt class="py-op">.</tt><tt class="py-name">dumps</tt><tt class="py-op">(</tt><tt class="py-name">results</tt><tt class="py-op">)</tt> </tt>
+<a name="L53"></a><tt class="py-lineno"> 53</tt>  <tt class="py-line">    <tt class="py-keyword">return</tt> <tt class="py-name">HttpResponse</tt><tt class="py-op">(</tt><tt class="py-name">serialized</tt><tt class="py-op">,</tt> <tt class="py-name">mimetype</tt><tt class="py-op">=</tt><tt class="py-string">"application/json"</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L54"></a><tt class="py-lineno"> 54</tt>  <tt class="py-line"> </tt>
+<a name="vote"></a><div id="vote-def"><a name="L55"></a><tt class="py-lineno"> 55</tt> <a class="py-toggle" href="#" id="vote-toggle" onclick="return toggle('vote');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="mixins.views-module.html#vote">vote</a><tt class="py-op">(</tt><tt class="py-param">request</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="vote-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="vote-expanded"><a name="L56"></a><tt class="py-lineno"> 56</tt>  <tt class="py-line">    <tt class="py-docstring">"""Accepts a GET request (usually AJAX) containing a vote and returns a JSON status response.</tt> </tt>
+<a name="L57"></a><tt class="py-lineno"> 57</tt>  <tt class="py-line"><tt class="py-docstring">    </tt> </tt>
+<a name="L58"></a><tt class="py-lineno"> 58</tt>  <tt class="py-line"><tt class="py-docstring">    GET keys:</tt> </tt>
+<a name="L59"></a><tt class="py-lineno"> 59</tt>  <tt class="py-line"><tt class="py-docstring">        contenttype: takes form of app__model (required).</tt> </tt>
+<a name="L60"></a><tt class="py-lineno"> 60</tt>  <tt class="py-line"><tt class="py-docstring">        id: id of model to be voted on (required).</tt> </tt>
+<a name="L61"></a><tt class="py-lineno"> 61</tt>  <tt class="py-line"><tt class="py-docstring">        vote: 1 for up-vote, -1 for down-vote, 0 to get user's current vote (required).</tt> </tt>
+<a name="L62"></a><tt class="py-lineno"> 62</tt>  <tt class="py-line"><tt class="py-docstring">        </tt> </tt>
+<a name="L63"></a><tt class="py-lineno"> 63</tt>  <tt class="py-line"><tt class="py-docstring">    Return:</tt> </tt>
+<a name="L64"></a><tt class="py-lineno"> 64</tt>  <tt class="py-line"><tt class="py-docstring">        error: 0 if successful, 1 if not.</tt> </tt>
+<a name="L65"></a><tt class="py-lineno"> 65</tt>  <tt class="py-line"><tt class="py-docstring">        value: contain net vote value for instance.</tt> </tt>
+<a name="L66"></a><tt class="py-lineno"> 66</tt>  <tt class="py-line"><tt class="py-docstring">        vote: contains user vote (if GET vote value is 0).</tt> </tt>
+<a name="L67"></a><tt class="py-lineno"> 67</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt>     </tt>
+<a name="L68"></a><tt class="py-lineno"> 68</tt>  <tt class="py-line">    <tt class="py-name">response</tt> <tt class="py-op">=</tt> <tt class="py-op">{</tt><tt class="py-op">}</tt> </tt>
+<a name="L69"></a><tt class="py-lineno"> 69</tt>  <tt class="py-line">    <tt class="py-name">value</tt> <tt class="py-op">=</tt> <tt class="py-number">0</tt> </tt>
+<a name="L70"></a><tt class="py-lineno"> 70</tt>  <tt class="py-line">    <tt id="link-14" class="py-name" targets="Variable re.error=re-module.html#error"><a title="re.error" class="py-name" href="#" onclick="return doclink('link-14', 'error', 'link-14');">error</a></tt> <tt class="py-op">=</tt> <tt class="py-number">1</tt> </tt>
+<a name="L71"></a><tt class="py-lineno"> 71</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt class="py-name">request</tt><tt class="py-op">.</tt><tt class="py-name">GET</tt><tt class="py-op">.</tt><tt class="py-name">has_key</tt><tt class="py-op">(</tt><tt class="py-string">'contenttype'</tt><tt class="py-op">)</tt> <tt class="py-keyword">and</tt> <tt class="py-name">request</tt><tt class="py-op">.</tt><tt class="py-name">GET</tt><tt class="py-op">.</tt><tt class="py-name">has_key</tt><tt class="py-op">(</tt><tt class="py-string">'id'</tt><tt class="py-op">)</tt> <tt class="py-keyword">and</tt> <tt class="py-name">request</tt><tt class="py-op">.</tt><tt class="py-name">GET</tt><tt class="py-op">.</tt><tt class="py-name">has_key</tt><tt class="py-op">(</tt><tt class="py-string">'vote'</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L72"></a><tt class="py-lineno"> 72</tt>  <tt class="py-line">        <tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
+<a name="L73"></a><tt class="py-lineno"> 73</tt>  <tt class="py-line">            <tt class="py-name">app_label</tt><tt class="py-op">,</tt> <tt class="py-name">model</tt> <tt class="py-op">=</tt> <tt class="py-name">request</tt><tt class="py-op">.</tt><tt class="py-name">GET</tt><tt class="py-op">[</tt><tt class="py-string">'contenttype'</tt><tt class="py-op">]</tt><tt class="py-op">.</tt><tt id="link-15" class="py-name"><a title="re.split" class="py-name" href="#" onclick="return doclink('link-15', 'split', 'link-2');">split</a></tt><tt class="py-op">(</tt><tt class="py-string">'__'</tt><tt class="py-op">)</tt> </tt>
+<a name="L74"></a><tt class="py-lineno"> 74</tt>  <tt class="py-line">            <tt class="py-name">ct</tt> <tt class="py-op">=</tt> <tt class="py-name">ContentType</tt><tt class="py-op">.</tt><tt id="link-16" class="py-name"><a title="mixins.models.BaseMixin.objects" class="py-name" href="#" onclick="return doclink('link-16', 'objects', 'link-3');">objects</a></tt><tt class="py-op">.</tt><tt class="py-name">get</tt><tt class="py-op">(</tt><tt class="py-name">app_label</tt><tt class="py-op">=</tt><tt class="py-name">app_label</tt><tt class="py-op">,</tt> <tt class="py-name">model</tt><tt class="py-op">=</tt><tt class="py-name">model</tt><tt class="py-op">)</tt> </tt>
+<a name="L75"></a><tt class="py-lineno"> 75</tt>  <tt class="py-line">            <tt class="py-name">id</tt> <tt class="py-op">=</tt> <tt class="py-name">request</tt><tt class="py-op">.</tt><tt class="py-name">GET</tt><tt class="py-op">[</tt><tt class="py-string">'id'</tt><tt class="py-op">]</tt> </tt>
+<a name="L76"></a><tt class="py-lineno"> 76</tt>  <tt class="py-line">            <tt class="py-name">v</tt> <tt class="py-op">=</tt> <tt class="py-name">request</tt><tt class="py-op">.</tt><tt class="py-name">GET</tt><tt class="py-op">[</tt><tt class="py-string">'vote'</tt><tt class="py-op">]</tt> </tt>
+<a name="L77"></a><tt class="py-lineno"> 77</tt>  <tt class="py-line">            <tt class="py-name">obj</tt> <tt class="py-op">=</tt> <tt class="py-name">ct</tt><tt class="py-op">.</tt><tt class="py-name">model_class</tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt id="link-17" class="py-name"><a title="mixins.models.BaseMixin.objects" class="py-name" href="#" onclick="return doclink('link-17', 'objects', 'link-3');">objects</a></tt><tt class="py-op">.</tt><tt class="py-name">filter</tt><tt class="py-op">(</tt><tt class="py-name">pk</tt><tt class="py-op">=</tt><tt class="py-name">id</tt><tt class="py-op">)</tt> </tt>
+<a name="L78"></a><tt class="py-lineno"> 78</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">obj</tt><tt class="py-op">:</tt> </tt>
+<a name="L79"></a><tt class="py-lineno"> 79</tt>  <tt class="py-line">                <tt class="py-name">obj</tt> <tt class="py-op">=</tt> <tt class="py-name">obj</tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt> </tt>
+<a name="L80"></a><tt class="py-lineno"> 80</tt>  <tt class="py-line">                <tt class="py-keyword">if</tt> <tt class="py-name">request</tt><tt class="py-op">.</tt><tt id="link-18" class="py-name"><a title="mixins.models.UserMixin.user" class="py-name" href="#" onclick="return doclink('link-18', 'user', 'link-5');">user</a></tt><tt class="py-op">.</tt><tt class="py-name">is_authenticated</tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L81"></a><tt class="py-lineno"> 81</tt>  <tt class="py-line">                    <tt class="py-keyword">if</tt> <tt class="py-name">v</tt> <tt class="py-op">!=</tt> <tt class="py-string">'0'</tt><tt class="py-op">:</tt> </tt>
+<a name="L82"></a><tt class="py-lineno"> 82</tt>  <tt class="py-line">                        <tt class="py-name">obj</tt><tt class="py-op">.</tt><tt id="link-19" class="py-name" targets="Variable mixins.models.UserVote.vote=mixins.models.UserVote-class.html#vote,Method mixins.models.VoteMixin.vote()=mixins.models.VoteMixin-class.html#vote,Function mixins.views.vote()=mixins.views-module.html#vote"><a title="mixins.models.UserVote.vote
+mixins.models.VoteMixin.vote
+mixins.views.vote" class="py-name" href="#" onclick="return doclink('link-19', 'vote', 'link-19');">vote</a></tt><tt class="py-op">(</tt><tt class="py-name">request</tt><tt class="py-op">.</tt><tt id="link-20" class="py-name"><a title="mixins.models.UserMixin.user" class="py-name" href="#" onclick="return doclink('link-20', 'user', 'link-5');">user</a></tt><tt class="py-op">,</tt> <tt class="py-name">v</tt><tt class="py-op">)</tt> </tt>
+<a name="L83"></a><tt class="py-lineno"> 83</tt>  <tt class="py-line">                    <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L84"></a><tt class="py-lineno"> 84</tt>  <tt class="py-line">                        <tt id="link-21" class="py-name" targets="Variable mixins.models.VoteMixin.uservote=mixins.models.VoteMixin-class.html#uservote"><a title="mixins.models.VoteMixin.uservote" class="py-name" href="#" onclick="return doclink('link-21', 'uservote', 'link-21');">uservote</a></tt> <tt class="py-op">=</tt> <tt class="py-name">obj</tt><tt class="py-op">.</tt><tt id="link-22" class="py-name" targets="Method mixins.models.VoteMixin.userVote()=mixins.models.VoteMixin-class.html#userVote"><a title="mixins.models.VoteMixin.userVote" class="py-name" href="#" onclick="return doclink('link-22', 'userVote', 'link-22');">userVote</a></tt><tt class="py-op">(</tt><tt class="py-name">request</tt><tt class="py-op">.</tt><tt id="link-23" class="py-name"><a title="mixins.models.UserMixin.user" class="py-name" href="#" onclick="return doclink('link-23', 'user', 'link-5');">user</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L85"></a><tt class="py-lineno"> 85</tt>  <tt class="py-line">                        <tt class="py-keyword">if</tt> <tt id="link-24" class="py-name"><a title="mixins.models.VoteMixin.uservote" class="py-name" href="#" onclick="return doclink('link-24', 'uservote', 'link-21');">uservote</a></tt> <tt class="py-keyword">is</tt> <tt class="py-keyword">not</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> </tt>
+<a name="L86"></a><tt class="py-lineno"> 86</tt>  <tt class="py-line">                            <tt class="py-name">response</tt><tt class="py-op">[</tt><tt class="py-string">'vote'</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt id="link-25" class="py-name"><a title="mixins.models.VoteMixin.uservote" class="py-name" href="#" onclick="return doclink('link-25', 'uservote', 'link-21');">uservote</a></tt><tt class="py-op">.</tt><tt id="link-26" class="py-name"><a title="mixins.models.UserVote.vote
+mixins.models.VoteMixin.vote
+mixins.views.vote" class="py-name" href="#" onclick="return doclink('link-26', 'vote', 'link-19');">vote</a></tt> </tt>
+<a name="L87"></a><tt class="py-lineno"> 87</tt>  <tt class="py-line">                <tt class="py-name">value</tt> <tt class="py-op">=</tt> <tt class="py-name">obj</tt><tt class="py-op">.</tt><tt id="link-27" class="py-name" targets="Method mixins.models.VoteMixin.voteValue()=mixins.models.VoteMixin-class.html#voteValue"><a title="mixins.models.VoteMixin.voteValue" class="py-name" href="#" onclick="return doclink('link-27', 'voteValue', 'link-27');">voteValue</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L88"></a><tt class="py-lineno"> 88</tt>  <tt class="py-line">                <tt id="link-28" class="py-name"><a title="re.error" class="py-name" href="#" onclick="return doclink('link-28', 'error', 'link-14');">error</a></tt> <tt class="py-op">=</tt> <tt class="py-number">0</tt> </tt>
+<a name="L89"></a><tt class="py-lineno"> 89</tt>  <tt class="py-line">        <tt class="py-keyword">except</tt> <tt class="py-name">ContentType</tt><tt class="py-op">.</tt><tt class="py-name">DoesNotExist</tt><tt class="py-op">:</tt> </tt>
+<a name="L90"></a><tt class="py-lineno"> 90</tt>  <tt class="py-line">            <tt class="py-keyword">pass</tt> </tt>
+<a name="L91"></a><tt class="py-lineno"> 91</tt>  <tt class="py-line">    <tt class="py-name">response</tt><tt class="py-op">[</tt><tt class="py-string">'error'</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt id="link-29" class="py-name"><a title="re.error" class="py-name" href="#" onclick="return doclink('link-29', 'error', 'link-14');">error</a></tt> </tt>
+<a name="L92"></a><tt class="py-lineno"> 92</tt>  <tt class="py-line">    <tt class="py-name">response</tt><tt class="py-op">[</tt><tt class="py-string">'value'</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-name">value</tt> </tt>
+<a name="L93"></a><tt class="py-lineno"> 93</tt>  <tt class="py-line">    <tt class="py-name">serialized</tt> <tt class="py-op">=</tt> <tt class="py-name">simplejson</tt><tt class="py-op">.</tt><tt class="py-name">dumps</tt><tt class="py-op">(</tt><tt class="py-name">response</tt><tt class="py-op">)</tt> </tt>
+<a name="L94"></a><tt class="py-lineno"> 94</tt>  <tt class="py-line">    <tt class="py-keyword">return</tt> <tt class="py-name">HttpResponse</tt><tt class="py-op">(</tt><tt class="py-name">serialized</tt><tt class="py-op">,</tt> <tt class="py-name">mimetype</tt><tt class="py-op">=</tt><tt class="py-string">"application/json"</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L95"></a><tt class="py-lineno"> 95</tt>  <tt class="py-line"> </tt>
+<a name="get_image_path"></a><div id="get_image_path-def"><a name="L96"></a><tt class="py-lineno"> 96</tt> <a class="py-toggle" href="#" id="get_image_path-toggle" onclick="return toggle('get_image_path');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="mixins.views-module.html#get_image_path">get_image_path</a><tt class="py-op">(</tt><tt class="py-param">instance</tt><tt class="py-op">,</tt> <tt class="py-param">filename</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="get_image_path-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="get_image_path-expanded"><a name="L97"></a><tt class="py-lineno"> 97</tt>  <tt class="py-line">    <tt class="py-docstring">"""Used by ImageMixin to set path to image based on specified path and filename."""</tt> </tt>
+<a name="L98"></a><tt class="py-lineno"> 98</tt>  <tt class="py-line">    <tt class="py-keyword">return</tt> <tt class="py-string">'%s/%s'</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">instance</tt><tt class="py-op">.</tt><tt class="py-name">image_path</tt><tt class="py-op">,</tt> <tt class="py-name">filename</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L99"></a><tt class="py-lineno"> 99</tt>  <tt class="py-line"> </tt>
+<a name="SlugifyUniquely"></a><div id="SlugifyUniquely-def"><a name="L100"></a><tt class="py-lineno">100</tt> <a class="py-toggle" href="#" id="SlugifyUniquely-toggle" onclick="return toggle('SlugifyUniquely');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="mixins.views-module.html#SlugifyUniquely">SlugifyUniquely</a><tt class="py-op">(</tt><tt class="py-param">value</tt><tt class="py-op">,</tt> <tt class="py-param">model</tt><tt class="py-op">,</tt> <tt class="py-param">slugfield</tt><tt class="py-op">=</tt><tt class="py-string">"slug"</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="SlugifyUniquely-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="SlugifyUniquely-expanded"><a name="L101"></a><tt class="py-lineno">101</tt>  <tt class="py-line">    <tt class="py-docstring">"""Returns a slug on a name which is unique within a model's table</tt> </tt>
+<a name="L102"></a><tt class="py-lineno">102</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L103"></a><tt class="py-lineno">103</tt>  <tt class="py-line"><tt class="py-docstring">    This code suffers a race condition between when a unique</tt> </tt>
+<a name="L104"></a><tt class="py-lineno">104</tt>  <tt class="py-line"><tt class="py-docstring">    slug is determined and when the object with that slug is saved.</tt> </tt>
+<a name="L105"></a><tt class="py-lineno">105</tt>  <tt class="py-line"><tt class="py-docstring">    It's also not exactly database friendly if there is a high</tt> </tt>
+<a name="L106"></a><tt class="py-lineno">106</tt>  <tt class="py-line"><tt class="py-docstring">    likelyhood of common slugs being attempted.</tt> </tt>
+<a name="L107"></a><tt class="py-lineno">107</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L108"></a><tt class="py-lineno">108</tt>  <tt class="py-line"><tt class="py-docstring">    A good usage pattern for this code would be to add a custom save()</tt> </tt>
+<a name="L109"></a><tt class="py-lineno">109</tt>  <tt class="py-line"><tt class="py-docstring">    method to a model with a slug field along the lines of:</tt> </tt>
+<a name="L110"></a><tt class="py-lineno">110</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L111"></a><tt class="py-lineno">111</tt>  <tt class="py-line"><tt class="py-docstring">            from django.template.defaultfilters import slugify</tt> </tt>
+<a name="L112"></a><tt class="py-lineno">112</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L113"></a><tt class="py-lineno">113</tt>  <tt class="py-line"><tt class="py-docstring">            def save(self):</tt> </tt>
+<a name="L114"></a><tt class="py-lineno">114</tt>  <tt class="py-line"><tt class="py-docstring">                if not self.id:</tt> </tt>
+<a name="L115"></a><tt class="py-lineno">115</tt>  <tt class="py-line"><tt class="py-docstring">                    # replace self.name with your prepopulate_from field</tt> </tt>
+<a name="L116"></a><tt class="py-lineno">116</tt>  <tt class="py-line"><tt class="py-docstring">                    self.slug = SlugifyUniquely(self.name, self.__class__)</tt> </tt>
+<a name="L117"></a><tt class="py-lineno">117</tt>  <tt class="py-line"><tt class="py-docstring">            super(self.__class__, self).save()</tt> </tt>
+<a name="L118"></a><tt class="py-lineno">118</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L119"></a><tt class="py-lineno">119</tt>  <tt class="py-line"><tt class="py-docstring">    Original pattern discussed at</tt> </tt>
+<a name="L120"></a><tt class="py-lineno">120</tt>  <tt class="py-line"><tt class="py-docstring">    http://www.b-list.org/weblog/2006/11/02/django-tips-auto-populated-fields</tt> </tt>
+<a name="L121"></a><tt class="py-lineno">121</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+<a name="L122"></a><tt class="py-lineno">122</tt>  <tt class="py-line">    <tt class="py-keyword">from</tt> <tt class="py-name">django</tt><tt class="py-op">.</tt><tt id="link-30" class="py-name" targets="Function re.template()=re-module.html#template"><a title="re.template" class="py-name" href="#" onclick="return doclink('link-30', 'template', 'link-30');">template</a></tt><tt class="py-op">.</tt><tt class="py-name">defaultfilters</tt> <tt class="py-keyword">import</tt> <tt class="py-name">slugify</tt> </tt>
+<a name="L123"></a><tt class="py-lineno">123</tt>  <tt class="py-line">    <tt class="py-name">suffix</tt> <tt class="py-op">=</tt> <tt class="py-number">1</tt> </tt>
+<a name="L124"></a><tt class="py-lineno">124</tt>  <tt class="py-line">    <tt class="py-name">potential</tt> <tt class="py-op">=</tt> <tt class="py-name">base</tt> <tt class="py-op">=</tt> <tt class="py-name">slugify</tt><tt class="py-op">(</tt><tt class="py-name">value</tt><tt class="py-op">)</tt> </tt>
+<a name="L125"></a><tt class="py-lineno">125</tt>  <tt class="py-line">    <tt class="py-keyword">while</tt> <tt class="py-name">True</tt><tt class="py-op">:</tt> </tt>
+<a name="L126"></a><tt class="py-lineno">126</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">suffix</tt> <tt class="py-op">&gt;</tt> <tt class="py-number">1</tt><tt class="py-op">:</tt> </tt>
+<a name="L127"></a><tt class="py-lineno">127</tt>  <tt class="py-line">                    <tt class="py-name">potential</tt> <tt class="py-op">=</tt> <tt class="py-string">"-"</tt><tt class="py-op">.</tt><tt class="py-name">join</tt><tt class="py-op">(</tt><tt class="py-op">[</tt><tt class="py-name">base</tt><tt class="py-op">,</tt> <tt class="py-name">str</tt><tt class="py-op">(</tt><tt class="py-name">suffix</tt><tt class="py-op">)</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+<a name="L128"></a><tt class="py-lineno">128</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">model</tt><tt class="py-op">.</tt><tt id="link-31" class="py-name"><a title="mixins.models.BaseMixin.objects" class="py-name" href="#" onclick="return doclink('link-31', 'objects', 'link-3');">objects</a></tt><tt class="py-op">.</tt><tt class="py-name">filter</tt><tt class="py-op">(</tt><tt class="py-op">**</tt><tt class="py-op">{</tt><tt class="py-name">slugfield</tt><tt class="py-op">:</tt> <tt class="py-name">potential</tt><tt class="py-op">}</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt class="py-name">count</tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L129"></a><tt class="py-lineno">129</tt>  <tt class="py-line">                    <tt class="py-keyword">return</tt> <tt class="py-name">potential</tt> </tt>
+<a name="L130"></a><tt class="py-lineno">130</tt>  <tt class="py-line">            <tt class="py-comment"># we hit a conflicting slug, so bump the suffix &amp; try again</tt> </tt>
+<a name="L131"></a><tt class="py-lineno">131</tt>  <tt class="py-line"><tt class="py-comment"></tt>            <tt class="py-name">suffix</tt> <tt class="py-op">+=</tt> <tt class="py-number">1</tt> </tt>
+</div><a name="L132"></a><tt class="py-lineno">132</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+      <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0beta1 on Mon Sep 21 23:21:22 2009
+    </td>
+    <td align="right" class="footer">
+      <a href="http://epydoc.sourceforge.net">http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie()
+  // -->
+</script>
+  
+</body>
+</html>
