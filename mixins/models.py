@@ -9,11 +9,8 @@ from django.db import models
 from django.db.models import Q, Sum, Count
 from django.db.models.query import QuerySet
 from django.template.defaultfilters import slugify
-from geopy import geocoders
 from mixins.views import *
-from PIL import Image
 import os
-import twitter
 
 class MixinManager(models.Manager):
     """Custom manager to handle mixin queries."""    
@@ -128,8 +125,12 @@ class LocationMixin(models.Model):
         
     def save(self):
         if self.place != '':
-            g = geocoders.Google('ABQIAAAAYksysDw0in8NRjwEFBJXaxTlfjA2irq0rOHwKfqbHkNeo2dq3RQJjhlAeJUpxWojw0yxWl099pfJvQ')
-            self.place, (self.latitude, self.longitude) = g.geocode(self.place)
+            try:
+                from geopy import geocoders
+                g = geocoders.Google('ABQIAAAAYksysDw0in8NRjwEFBJXaxTlfjA2irq0rOHwKfqbHkNeo2dq3RQJjhlAeJUpxWojw0yxWl099pfJvQ')
+                self.place, (self.latitude, self.longitude) = g.geocode(self.place)
+            except ImportError:
+                pass
         super(LocationMixin, self).save()
 
 class SlugMixin(models.Model):
@@ -258,35 +259,40 @@ class AutosuggestMixin(models.Model):
     class Meta:
         abstract = True
 
-class TwitterMixin(models.Model):
-    """Send a tweet whenever the implementer decides.
-    
-    Requires python wrapper for Twitter API: http://code.google.com/p/python-twitter/
-    
-    Extending model must implement method twitter_message which takes no params and returns
-    a 140 character string to tweet.  It doesn't matter what's in it, which is why no implementation
-    is provided.
-    
-    Settings to be placed in settings.py:
-        TWEETING: if True, tweets will be sent
-        TWITTER_USERNAME
-        TWITTER_PASSWORD
-    """
-    
-    class Meta:
-        abstract = True
+try:
+    import twitter
+    class TwitterMixin(models.Model):
+        """Send a tweet whenever the implementer decides.
         
-    def tweet(self):
-        if not settings.TWEETING:
-            return
-        username = settings.TWITTER_USERNAME
-        password = settings.TWITTER_PASSWORD
-        message = self.twitter_message()
-        api = twitter.Api(username, password)
-        try:
-            api.PostUpdate(message)
-        except ValueError:
-            pass
+        Requires python wrapper for Twitter API: http://code.google.com/p/python-twitter/
+        
+        Extending model must implement method twitter_message which takes no params and returns
+        a 140 character string to tweet.  It doesn't matter what's in it, which is why no implementation
+        is provided.
+        
+        Settings to be placed in settings.py:
+            TWEETING: if True, tweets will be sent
+            TWITTER_USERNAME
+            TWITTER_PASSWORD
+        """
+        
+        class Meta:
+            abstract = True
+            
+        def tweet(self):
+            if not settings.TWEETING:
+                return
+            username = settings.TWITTER_USERNAME
+            password = settings.TWITTER_PASSWORD
+            message = self.twitter_message()
+            api = twitter.Api(username, password)
+            try:
+                api.PostUpdate(message)
+            except ValueError:
+                pass
+except ImportError:
+    class TwitterMixin(models.Model):
+        pass
 
 class ImageThumbEnum:
     """Enum to handle thumb creation behavior."""
@@ -304,14 +310,18 @@ class ImageMixin(models.Model):
         abstract = True
         
     def resize_image(self):
-        """If image_max_resolution (w,h) is specified on model, shrink down image to be less than that resolution.""" 
-        i_filename = self.image.path
-        if os.path.isfile(i_filename):
-            image = Image.open(i_filename)
-            if image.mode not in ('L', 'RGB'):
-                image = image.convert('RGB')
-            image.thumbnail(self.image_max_resolution, Image.ANTIALIAS)
-            image.save(i_filename)
+        try:
+            from PIL import Image
+            """If image_max_resolution (w,h) is specified on model, shrink down image to be less than that resolution.""" 
+            i_filename = self.image.path
+            if os.path.isfile(i_filename):
+                image = Image.open(i_filename)
+                if image.mode not in ('L', 'RGB'):
+                    image = image.convert('RGB')
+                image.thumbnail(self.image_max_resolution, Image.ANTIALIAS)
+                image.save(i_filename)
+        except ImportError:
+            pass
             
     def create_thumbnail(self):
         """If image_thumb_resolution (w,h) is specified on model, will create a thumbnail with that size.
@@ -320,25 +330,29 @@ class ImageMixin(models.Model):
         is maintained by taking slices from the edges so thumb won't contain whole image (but will be
         semi-centered).
         """
-        i_filename = self.image.path
-        t_filename = "%s/tn_%s" % (os.path.dirname(i_filename), os.path.basename(i_filename))
-        if os.path.isfile(i_filename) and not os.path.isfile(t_filename):
-            image = Image.open(i_filename)
-            if image.mode not in ('L', 'RGB'):
-                image = image.convert('RGB')
-            if hasattr(self, 'image_thumb_enum') and self.image_thumb_enum.SQUARE:
-                if image.size[0] > image.size[1]:
-                    THUMBNAIL_SIZE = (float("infinity"), self.image_thumb_resolution[1])
+        try:
+            from PIL import Image
+            i_filename = self.image.path
+            t_filename = "%s/tn_%s" % (os.path.dirname(i_filename), os.path.basename(i_filename))
+            if os.path.isfile(i_filename) and not os.path.isfile(t_filename):
+                image = Image.open(i_filename)
+                if image.mode not in ('L', 'RGB'):
+                    image = image.convert('RGB')
+                if hasattr(self, 'image_thumb_enum') and self.image_thumb_enum.SQUARE:
+                    if image.size[0] > image.size[1]:
+                        THUMBNAIL_SIZE = (float("infinity"), self.image_thumb_resolution[1])
+                    else:
+                        THUMBNAIL_SIZE = (self.image_thumb_resolution[0], float("infinity"))
+                    image.thumbnail(THUMBNAIL_SIZE, Image.ANTIALIAS)
+                    x_left = (image.size[0] - self.image_thumb_resolution[0]) / 2
+                    y_top = (image.size[1] - self.image_thumb_resolution[1]) / 2
+                    region = image.crop((x_left, y_top, x_left + self.image_thumb_resolution[0], y_top + self.image_thumb_resolution[1]))
                 else:
-                    THUMBNAIL_SIZE = (self.image_thumb_resolution[0], float("infinity"))
-                image.thumbnail(THUMBNAIL_SIZE, Image.ANTIALIAS)
-                x_left = (image.size[0] - self.image_thumb_resolution[0]) / 2
-                y_top = (image.size[1] - self.image_thumb_resolution[1]) / 2
-                region = image.crop((x_left, y_top, x_left + self.image_thumb_resolution[0], y_top + self.image_thumb_resolution[1]))
-            else:
-                image.thumbnail(self.image_thumb_resolution, Image.ANTIALIAS)
-                region = image
-            region.save(t_filename)
+                    image.thumbnail(self.image_thumb_resolution, Image.ANTIALIAS)
+                    region = image
+                region.save(t_filename)
+        except ImportError:
+            pass
     
     def thumbnail(self):
         """Return full path to thumbnail for model, or creates it if it doesn't exist."""
@@ -347,7 +361,10 @@ class ImageMixin(models.Model):
             t_filename = "%s/tn_%s" % (os.path.dirname(i_filename), os.path.basename(i_filename))
             if not os.path.isfile(t_filename):
                 self.create_thumbnail()
-            return '%s/%s' % (self.image_path, os.path.basename(t_filename))
+            if not os.path.isfile(t_filename):
+                return None
+            else:
+                return '%s/%s' % (self.image_path, os.path.basename(t_filename))
         return None
     
     def save(self):
