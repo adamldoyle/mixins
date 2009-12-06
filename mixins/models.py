@@ -116,19 +116,31 @@ class IPMixin(models.Model):
 
 class LocationMixin(models.Model):
     """Uses Google geocoder to determine latitude/longitude for model during save."""
-    place = models.TextField()
+    address = models.CharField(max_length=100)
+    address2 = models.CharField(max_length=100, blank=True)
+    city = models.CharField(max_length=50, blank=True)
+    state = models.CharField(max_length=50, blank=True)
+    zip = models.CharField(max_length=12, blank=True)
+    country = models.CharField(max_length=50, default='US')
     latitude = models.FloatField()
     longitude = models.FloatField()
     
     class Meta:
         abstract = True
         
+    def buildFullAddress(self):
+        full = [address]
+        for field in (address2, city, state, zip, country):
+            if field != '':
+                full.append(field)
+        return ' '.join(full)
+        
     def save(self):
-        if self.place != '':
+        if self.address != '':
             try:
                 from geopy import geocoders
                 g = geocoders.Google('ABQIAAAAYksysDw0in8NRjwEFBJXaxTlfjA2irq0rOHwKfqbHkNeo2dq3RQJjhlAeJUpxWojw0yxWl099pfJvQ')
-                self.place, (self.latitude, self.longitude) = g.geocode(self.place)
+                temp, (self.latitude, self.longitude) = g.geocode(self.buildFullAddress())
             except ImportError:
                 pass
         super(LocationMixin, self).save()

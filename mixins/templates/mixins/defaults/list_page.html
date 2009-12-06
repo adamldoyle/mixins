@@ -1,0 +1,53 @@
+{% extends "layout/base_site.html" %}
+
+{% if section_title %}{% block sectitle %}{{ section_title }} |{% endblock %}{% endif %}
+
+{% block content %}
+
+<script type="text/javascript">
+
+var filters = new Array();
+var filterValues = new Array();
+
+{% for key, value in autosuggest_params.items %}
+	filters[filters.length] = "{{ key }}";
+	filterValues[filterValues.length] = "{{ value }}";
+{% endfor %}
+
+</script>
+
+
+
+<input class="autosuggest_input" type="text" id="{{ model_name }}_title" onclick="this.value='';" value="Search all {{ model_name_plural }}..." />
+<script type="text/javascript">
+	initAutosuggest('{{ app_label }}__{{ model_name }}', '{{ model_name }}_title', null, function(data) { window.location.href = data.url }, null, false, filters, filterValues);
+</script>
+
+<input class="autosuggest_input" type="text" id="your_{{ model_name }}_title" onclick="this.value='';" value="Search your {{ model_name_plural }}..." />
+<script type="text/javascript">
+	initAutosuggest('{{ app_label }}__{{ model_name }}', 'your_{{ model_name }}_title', null, function(data) { window.location.href = data.url }, null, true, filters, filterValues);
+</script>
+
+<h4 class="section_title">Top {{ model_name_plural|capfirst }}</h4>
+<ol class="recipe_item_list">
+	{% if top_objects %}
+		{% for object in top_objects %}
+			<li><a href="{{ object.get_absolute_url }}">{{ object }}</a> ({{ object.voteValue }})</li>
+		{% endfor %}
+	{% else %}
+		<li>No {{ model_name_plural }}.</li>
+	{% endif %}
+</ol>
+
+<h4 class="section_title">Voteless {{ model_name_plural|capfirst }}</h4>
+<ul class="recipe_item_list">
+	{% if voteless_objects %}
+		{% for object in voteless_objects %}
+			<li><a href="{{ object.get_absolute_url }}">{{ object }}</a></li>
+		{% endfor %}
+	{% else %}
+		<li>No {{ model_name_plural }}.</li>
+	{% endif %}
+</ul>
+
+{% endblock %}
