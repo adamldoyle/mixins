@@ -118,9 +118,9 @@ class LocationMixin(models.Model):
     """Uses Google geocoder to determine latitude/longitude for model during save."""
     address = models.CharField(max_length=100)
     address2 = models.CharField(max_length=100, blank=True)
-    city = models.CharField(max_length=50, blank=True)
-    state = models.CharField(max_length=50, blank=True)
-    zip = models.CharField(max_length=12, blank=True)
+    city = models.CharField(max_length=50)
+    state = models.CharField(max_length=50)
+    zip = models.CharField(max_length=12)
     country = models.CharField(max_length=50, default='US')
     latitude = models.FloatField()
     longitude = models.FloatField()
@@ -129,8 +129,8 @@ class LocationMixin(models.Model):
         abstract = True
         
     def buildFullAddress(self):
-        full = [address]
-        for field in (address2, city, state, zip, country):
+        full = []
+        for field in (self.address, self.address2, self.city, self.state, self.zip, self.country):
             if field != '':
                 full.append(field)
         return ' '.join(full)
@@ -143,6 +143,10 @@ class LocationMixin(models.Model):
                 temp, (self.latitude, self.longitude) = g.geocode(self.buildFullAddress())
             except ImportError:
                 pass
+            except ValueError:
+                # TODO: Need to prompt user to fix problem.
+                self.latitude = 0
+                self.longitude = 0
         super(LocationMixin, self).save()
 
 class SlugMixin(models.Model):
