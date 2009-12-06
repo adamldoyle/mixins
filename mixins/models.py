@@ -85,7 +85,7 @@ class BaseMixin(models.Model):
         
 class DeleteMixin(BaseMixin):
     """Implements soft deletes which will only be available from the admin section."""
-    deleted = models.BooleanField(default=False)
+    deleted = models.BooleanField(default=False, db_index=True)
     
     class Meta:
         abstract = True
@@ -95,14 +95,14 @@ class DeleteMixin(BaseMixin):
         self.save()
         
 class GlobalMixin(BaseMixin):
-    is_global = models.BooleanField(default=True)
+    is_global = models.BooleanField(default=True, db_index=True)
     
     class Meta:
         abstract = True
 
 class DateMixin(BaseMixin):
     """Implement created/modified dates for the model."""
-    created_at = models.DateTimeField(editable=False, auto_now_add=True)
+    created_at = models.DateTimeField(editable=False, auto_now_add=True, db_index=True)
     modified_at = models.DateTimeField(editable=False, auto_now=True)
     
     class Meta:
@@ -153,7 +153,7 @@ class SlugMixin(models.Model):
         slugNewOnly: if True, will only create slug for new instance
         slugValue: string value of field to use for slug
     """
-    slug = models.SlugField(editable=False)
+    slug = models.SlugField(editable=False, db_index=True)
     uniqueSlug = False
     slugNewOnly = False
     
@@ -180,7 +180,7 @@ class UserMixin(models.Model):
 
 class UserVote(UserMixin, DateMixin):
     """Contains a single user's vote for any model that extends VoteMixin."""
-    vote = models.SmallIntegerField()
+    vote = models.SmallIntegerField(db_index=True)
     
     content_type = models.ForeignKey(ContentType)
     object_id = models.PositiveIntegerField()
