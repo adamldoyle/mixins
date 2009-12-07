@@ -182,6 +182,22 @@ class UserMixin(models.Model):
     class Meta:
         abstract = True
 
+class Tag(models.Model):
+    tag = models.CharField(max_length=20)
+    
+    content_type = models.ForeignKey(ContentType)
+    object_id = models.PositiveIntegerField()
+    content_object = generic.GenericForeignKey()
+    
+    def __unicode__(self):
+        return self.tag
+
+class TagMixin(models.Model):
+    tags = generic.GenericRelation(Tag, related_name="%(class)s_tags")
+    
+    class Meta:
+        abstract = True
+
 class UserVote(UserMixin, DateMixin):
     """Contains a single user's vote for any model that extends VoteMixin."""
     vote = models.SmallIntegerField(db_index=True)
@@ -195,7 +211,7 @@ class UserVote(UserMixin, DateMixin):
 
 class VoteMixin(BaseMixin):
     """Implements ability to track user up/down votes on any instance."""
-    votes = generic.GenericRelation(UserVote, related_name="%(class)s_related")
+    votes = generic.GenericRelation(UserVote, related_name="%(class)s_votes")
     uservote = None
     votevalue = None
     
