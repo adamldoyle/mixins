@@ -165,7 +165,7 @@ class SlugMixin(models.Model):
         abstract = True
     
     def save(self):
-        if not slugNewOnly or not self.id:
+        if not self.slugNewOnly or not self.id:
             try:
                 if self.uniqueSlug:
                     self.slug = SlugifyUniquely(getattr(self, self.slugValue), self.__class__)
