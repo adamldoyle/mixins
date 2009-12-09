@@ -258,6 +258,9 @@ class VoteMixin(BaseMixin):
         self.votevalue = self.voteUpCount() - self.voteDownCount()
         return self.votevalue
     
+    def clearVotes(self):
+        self.votes.all().delete()
+    
     def contenttype(self):
         """Helper method to get the contenttype for the model."""
         return ContentType.objects.get_for_model(self)
