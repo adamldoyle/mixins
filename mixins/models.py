@@ -177,7 +177,7 @@ class SlugMixin(models.Model):
 
 class UserMixin(models.Model):
     
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(User, null=True, blank=True)
     
     class Meta:
         abstract = True
