@@ -185,15 +185,11 @@ class UserMixin(models.Model):
 class Tag(models.Model):
     tag = models.CharField(max_length=20)
     
-    content_type = models.ForeignKey(ContentType)
-    object_id = models.PositiveIntegerField()
-    content_object = generic.GenericForeignKey()
-    
     def __unicode__(self):
         return self.tag
 
 class TagMixin(models.Model):
-    tags = generic.GenericRelation(Tag, related_name="%(class)s_tags")
+    tags = models.ManyToManyField(Tag, null=True, blank=True, related_name="%(class)s_tags")
     
     class Meta:
         abstract = True
