@@ -13,6 +13,7 @@ from mixins.views import *
 import os
 
 class MixinManager(models.Manager):
+
     """Custom manager to handle mixin queries."""    
     def get_query_set(self):
         """Return custom queryset from BaseMixin model. Filter out deleted instances, if possible."""
@@ -24,8 +25,8 @@ class MixinManager(models.Manager):
 
 class BaseMixin(models.Model):
     """Model to be extended by any mixins requiring custom queries."""
-    admin_manager = models.Manager()
     objects = MixinManager()
+    admin_manager = models.Manager()
     
     class MixinQuerySet(QuerySet):
         """Override queryset to allow custom query filters to be chained onto eachother."""
@@ -90,9 +91,12 @@ class DeleteMixin(BaseMixin):
     class Meta:
         abstract = True
     
-    def delete(self):
-        self.deleted = True
-        self.save()
+    def delete(self, force=False):
+        if force:
+            super(DeleteMixin, self).delete()
+        else:
+            self.deleted = True
+            self.save()
         
 class GlobalMixin(BaseMixin):
     is_global = models.BooleanField(default=True, db_index=True)
