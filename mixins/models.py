@@ -146,7 +146,8 @@ class LocationMixin(models.Model):
                 g = geocoders.Google('ABQIAAAAYksysDw0in8NRjwEFBJXaxTlfjA2irq0rOHwKfqbHkNeo2dq3RQJjhlAeJUpxWojw0yxWl099pfJvQ')
                 temp, (self.latitude, self.longitude) = g.geocode(self.buildFullAddress())
             except ImportError:
-                pass
+                self.latitude = 0
+                self.longitude = 0
             except ValueError:
                 # TODO: Need to prompt user to fix problem.
                 self.latitude = 0
