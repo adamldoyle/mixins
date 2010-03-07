@@ -5,8 +5,9 @@ class VariableNode(template.Node):
     """Provide basic implementation of template Node. Extending class only needs to implement
         setVariable, which should return an object."""
         
-    def __init__(self, var_name):
+    def __init__(self, var_name, data=None):
         self.var_name = var_name
+        self.data = data
     
     """Add the object to the context with the desired variable name."""
     def render(self, context):
@@ -21,14 +22,15 @@ def VariableTag(parser, token, varNode):
     """Implementation of the tag, shouldn't need to edit.  varNode is class that extends VariableNode."""
     
     try:
-        tag_name, arg = token.contents.split(None, 1)
+        args = token.split_contents()
+        tag_name = args[0]
     except ValueError:
         raise template.TemplateSyntaxError, "%r tag requires arguments" % token.contents.split()[0]
-    m = re.search(r'as (\w+)', arg)
-    if not m:
+    if args[-2] != 'as':
         raise template.TemplateSyntaxError, "%r tag had invalid arguments" % tag_name
-    var_name = m.group(1)
-    return varNode(var_name)
+    var_name = args[-1]
+    data = [arg.strip('"') for arg in args[1:-2]]
+    return varNode(var_name, data)
 
 def render_with_context(request, url, vars):
     from django.template import RequestContext

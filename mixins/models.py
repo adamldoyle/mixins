@@ -140,19 +140,24 @@ class LocationMixin(models.Model):
         return ' '.join(full)
         
     def save(self):
+        do_save = True
         if self.address != '':
             try:
                 from geopy import geocoders
                 g = geocoders.Google('ABQIAAAAYksysDw0in8NRjwEFBJXaxTlfjA2irq0rOHwKfqbHkNeo2dq3RQJjhlAeJUpxWojw0yxWl099pfJvQ')
-                temp, (self.latitude, self.longitude) = g.geocode(self.buildFullAddress())
+                addresses = list(g.geocode(self.buildFullAddress(), exactly_one=False))
+                if len(addresses) == 1:
+                    self.latitude, self.longitude = addresses[0][1]
+                else:
+                    self.latitude = 0
+                    self.longitude = 0
+                    self.potential_addresses = addresses
+                    do_save = False
             except ImportError:
                 self.latitude = 0
                 self.longitude = 0
-            except ValueError:
-                # TODO: Need to prompt user to fix problem.
-                self.latitude = 0
-                self.longitude = 0
-        super(LocationMixin, self).save()
+        if do_save:
+            super(LocationMixin, self).save()
 
 class SlugMixin(models.Model):
     """Add a slug field based on a certain field.
