@@ -345,7 +345,7 @@ class ImageMixin(models.Model):
     
     Creating thumbnails or resizing images requires PIL: http://www.pythonware.com/products/pil/
     """
-    image = models.ImageField(upload_to=get_image_path)
+    image = models.ImageField(upload_to=get_image_path, null=True, blank=True)
     
     class Meta:
         abstract = True
@@ -367,7 +367,7 @@ class ImageMixin(models.Model):
     def create_thumbnail(self):
         """If image_thumb_resolution (w,h) is specified on model, will create a thumbnail with that size.
         
-        If image_thumb_enum is set to SQUARE, image will be fit to the exact resolution.  Aspect ratio
+        If image_thumb_type is set to SQUARE, image will be fit to the exact resolution.  Aspect ratio
         is maintained by taking slices from the edges so thumb won't contain whole image (but will be
         semi-centered).
         """
@@ -379,7 +379,7 @@ class ImageMixin(models.Model):
                 image = Image.open(i_filename)
                 if image.mode not in ('L', 'RGB'):
                     image = image.convert('RGB')
-                if hasattr(self, 'image_thumb_enum') and self.image_thumb_enum.SQUARE:
+                if hasattr(self, 'image_thumb_type') and self.image_thumb_type == ImageThumbEnum.SQUARE:
                     if image.size[0] > image.size[1]:
                         THUMBNAIL_SIZE = (float("infinity"), self.image_thumb_resolution[1])
                     else:
@@ -408,10 +408,23 @@ class ImageMixin(models.Model):
                 return '%s/%s' % (self.image_path, os.path.basename(t_filename))
         return None
     
+    def new_image(self):
+        has_changed = False
+        if not self.id:
+            has_changed = True
+        else:
+            try:
+                old = self.__class__.objects.get(pk=self.id)
+                if old.image.path != self.image.path:
+                    has_changed = True
+            except self.__class__.DoesNotExist:
+                has_changed = True
+        return has_changed
+    
     def save(self):
-        new_model = not self.id
+        has_changed = new_image()
         super(ImageMixin, self).save()
-        if new_model and self.image:
+        if self.image and has_changed:
             if hasattr(self, 'image_thumb_resolution'):
                 self.create_thumbnail()
             if hasattr(self, 'image_max_resolution'):
