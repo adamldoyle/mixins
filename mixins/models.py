@@ -422,7 +422,7 @@ class ImageMixin(models.Model):
         return has_changed
     
     def save(self):
-        has_changed = new_image()
+        has_changed = self.new_image()
         super(ImageMixin, self).save()
         if self.image and has_changed:
             if hasattr(self, 'image_thumb_resolution'):
