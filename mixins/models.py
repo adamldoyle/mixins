@@ -415,14 +415,14 @@ class ImageMixin(models.Model):
         else:
             try:
                 old = self.__class__.objects.get(pk=self.id)
-                if old.image.path != self.image.path:
+                if not old.image or old.image.path != self.image.path:
                     has_changed = True
             except self.__class__.DoesNotExist:
                 has_changed = True
         return has_changed
     
     def save(self):
-        has_changed = self.new_image()
+        has_changed = self.image and self.new_image()
         super(ImageMixin, self).save()
         if self.image and has_changed:
             if hasattr(self, 'image_thumb_resolution'):
