@@ -338,7 +338,7 @@ except ImportError:
 class ImageThumbEnum:
     """Enum to handle thumb creation behavior."""
     NORMAL = 0
-    SQUARE = 1
+    FIT = 1
 
 class ImageMixin(models.Model):
     """Allows an image to be attached to a model instance.
@@ -350,7 +350,7 @@ class ImageMixin(models.Model):
     class Meta:
         abstract = True
         
-    def resize_image(self):
+    def resize_image(self, resolution):
         try:
             from PIL import Image
             """If image_max_resolution (w,h) is specified on model, shrink down image to be less than that resolution.""" 
@@ -359,12 +359,12 @@ class ImageMixin(models.Model):
                 image = Image.open(i_filename)
                 if image.mode not in ('L', 'RGB'):
                     image = image.convert('RGB')
-                image.thumbnail(self.image_max_resolution, Image.ANTIALIAS)
+                image.thumbnail(resolution, Image.ANTIALIAS)
                 image.save(i_filename)
         except ImportError:
             pass
             
-    def create_thumbnail(self):
+    def create_thumbnail(self, resolution, type):
         """If image_thumb_resolution (w,h) is specified on model, will create a thumbnail with that size.
         
         If image_thumb_type is set to SQUARE, image will be fit to the exact resolution.  Aspect ratio
@@ -374,38 +374,40 @@ class ImageMixin(models.Model):
         try:
             from PIL import Image
             i_filename = self.image.path
-            t_filename = "%s/tn_%s" % (os.path.dirname(i_filename), os.path.basename(i_filename))
+            t_filename = "%s/tn_%sx%s_%s_%s" % (os.path.dirname(i_filename), resolution[0], resolution[1], type, os.path.basename(i_filename))
             if os.path.isfile(i_filename) and not os.path.isfile(t_filename):
                 image = Image.open(i_filename)
                 if image.mode not in ('L', 'RGB'):
                     image = image.convert('RGB')
-                if hasattr(self, 'image_thumb_type') and self.image_thumb_type == ImageThumbEnum.SQUARE:
-                    if image.size[0] > image.size[1]:
-                        THUMBNAIL_SIZE = (float("infinity"), self.image_thumb_resolution[1])
+                if type == ImageThumbEnum.FIT:
+                    if (float(image.size[0]) / float(image.size[1])) > (float(resolution[0]) / float(resolution[1])):
+                        THUMBNAIL_SIZE = (float("infinity"), resolution[1])
                     else:
-                        THUMBNAIL_SIZE = (self.image_thumb_resolution[0], float("infinity"))
+                        THUMBNAIL_SIZE = (resolution[0], float("infinity"))
                     image.thumbnail(THUMBNAIL_SIZE, Image.ANTIALIAS)
-                    x_left = (image.size[0] - self.image_thumb_resolution[0]) / 2
-                    y_top = (image.size[1] - self.image_thumb_resolution[1]) / 2
-                    region = image.crop((x_left, y_top, x_left + self.image_thumb_resolution[0], y_top + self.image_thumb_resolution[1]))
+                    x_left = (image.size[0] - resolution[0]) / 2
+                    y_top = (image.size[1] - resolution[1]) / 2
+                    region = image.crop((x_left, y_top, x_left + resolution[0], y_top + resolution[1]))
                 else:
-                    image.thumbnail(self.image_thumb_resolution, Image.ANTIALIAS)
+                    image.thumbnail(resolution, Image.ANTIALIAS)
                     region = image
                 region.save(t_filename)
         except ImportError:
             pass
     
-    def thumbnail(self):
+    def thumbnail(self, resolution=None, type=ImageThumbEnum.NORMAL):
         """Return full path to thumbnail for model, or creates it if it doesn't exist."""
-        if self.image and hasattr(self, 'image_thumb_resolution'):
+        if resolution is None and hasattr(self, 'image_thumb_resolution'):
+            resolution = self.image_thumb_resolution
+        if self.image and resolution is not None:
             i_filename = self.image.path
-            t_filename = "%s/tn_%s" % (os.path.dirname(i_filename), os.path.basename(i_filename))
+            t_filename = "%s/tn_%sx%s_%s_%s" % (os.path.dirname(i_filename), resolution[0], resolution[1], type, os.path.basename(i_filename))
             if not os.path.isfile(t_filename):
-                self.create_thumbnail()
+                self.create_thumbnail(resolution, type)
             if not os.path.isfile(t_filename):
                 return None
             else:
-                return '%s/%s' % (self.image_path, os.path.basename(t_filename))
+                return '%s/%s' % (os.path.dirname(self.image.url), os.path.basename(t_filename))
         return None
     
     def new_image(self):
@@ -426,9 +428,12 @@ class ImageMixin(models.Model):
         super(ImageMixin, self).save()
         if self.image and has_changed:
             if hasattr(self, 'image_thumb_resolution'):
-                self.create_thumbnail()
+                type = ImageThumbEnum.NORMAL
+                if hasattr(self, 'image_thumb_type'):
+                    type = self.image_thumb_type
+                self.create_thumbnail(self.image_thumb_resolution, type)
             if hasattr(self, 'image_max_resolution'):
-                self.resize_image()
+                self.resize_image(self.image_max_resolution)
     
 class UserVoteAdmin(admin.ModelAdmin):
     """Show admin page for user votes which includes links back to the model instance's change page."""
