@@ -126,18 +126,21 @@ class LocationMixin(models.Model):
     state = models.CharField(max_length=50)
     zip = models.CharField(max_length=12)
     country = models.CharField(max_length=50, default='US')
-    latitude = models.FloatField()
-    longitude = models.FloatField()
+    latitude = models.FloatField(default=0)
+    longitude = models.FloatField(default=0)
     
     class Meta:
         abstract = True
         
     def buildFullAddress(self):
         full = []
-        for field in (self.address, self.address2, self.city, self.state, self.zip, self.country):
+        for field in (self.address, self.address2, self.city, self.state, self.zip):
             if field != '':
                 full.append(field)
-        return ' '.join(full)
+        partial = ' '.join(full)
+        if partial != '':
+            return '%s %s' % (partial, self.country)
+        return ''
         
     def save(self):
         do_save = True
@@ -152,7 +155,7 @@ class LocationMixin(models.Model):
                     self.latitude = 0
                     self.longitude = 0
                     self.potential_addresses = addresses
-                    do_save = False
+                    #do_save = False
             except ImportError:
                 self.latitude = 0
                 self.longitude = 0
