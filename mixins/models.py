@@ -3,12 +3,14 @@ from django.contrib import admin
 from django.contrib.auth.models import User
 from django.contrib.contenttypes import generic
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.sites.models import Site
 from django.core.exceptions import FieldError
 from django.core.urlresolvers import NoReverseMatch, reverse
 from django.db import models
 from django.db.models import Q, Sum, Count
 from django.db.models.query import QuerySet
 from django.template.defaultfilters import slugify
+from django.utils.translation import ugettext as _
 from mixins.views import *
 import os
 
@@ -343,6 +345,10 @@ class ImageThumbEnum:
     NORMAL = 0
     FIT = 1
 
+IMAGE_STYLE_CHOICES = (
+    (ImageThumbEnum.NORMAL, _("Don't crop to fit")),
+    (ImageThumbEnum.FIT, _('Crop to fit')))
+
 class ImageMixin(models.Model):
     """Allows an image to be attached to a model instance.
     
@@ -437,6 +443,25 @@ class ImageMixin(models.Model):
                 self.create_thumbnail(self.image_thumb_resolution, type)
             if hasattr(self, 'image_max_resolution'):
                 self.resize_image(self.image_max_resolution)
+
+class DomainMixin(models.Model):
+    domain = models.CharField(max_length=40, null=True, blank=True)
+    subdomain = models.CharField(max_length=30, unique=True)
+    
+    class Meta:
+        abstract=True
+    
+    def get_domain(self, force_subdomain=False):
+        if self.domain and not force_subdomain:
+            return 'http://%s' % self.domain
+        else:
+            return 'http://%s.%s' % (self.subdomain, Site.objects.get_current().domain)
+
+class EmailMixin(models.Model):
+    email = models.CharField(max_length=320, null=True, blank=True)
+    
+    class Meta:
+        abstract=True
     
 class UserVoteAdmin(admin.ModelAdmin):
     """Show admin page for user votes which includes links back to the model instance's change page."""

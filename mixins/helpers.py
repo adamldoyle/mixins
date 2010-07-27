@@ -37,7 +37,7 @@ def render_with_context(request, url, vars):
     from django.shortcuts import render_to_response
     return render_to_response(url, vars, context_instance=RequestContext(request))
 
-def list_page(request, model, subset, template_name='mixins/list_page.html', **kwargs):
+def list_page(request, model, subset, template_name='mixins/defaults/list_page.html', **kwargs):
     app_label = model._meta.app_label
     model_name = model._meta.verbose_name
     model_name_plural = plural(model._meta.verbose_name)
@@ -46,11 +46,13 @@ def list_page(request, model, subset, template_name='mixins/list_page.html', **k
     autosuggest_params = kwargs.get('autosuggest_params', {})
     if callable(autosuggest_params):
         autosuggest_params = autosuggest_params(kwargs)
+    parent_title = kwargs.get('parent_title', None)
+    if callable(parent_title):
+        parent_title = parent_title(kwargs)
     top_objects = subset.globals().top_ten()
     voteless_objects = subset.globals().voteless()
     title = kwargs.get('title', 'List')
-    print template_name
-    kwargs.update({'title': title, 'app_label': app_label, 'model_name': model_name, 'model_name_plural': model_name_plural, 'top_objects': top_objects, 'voteless_objects': voteless_objects, 'autosuggest_params': autosuggest_params})
+    kwargs.update({'title': title, 'parent_title': parent_title, 'app_label': app_label, 'model_name': model_name, 'model_name_plural': model_name_plural, 'top_objects': top_objects, 'voteless_objects': voteless_objects, 'autosuggest_params': autosuggest_params})
     return render_with_context(request, template_name, kwargs)
 
 def smart_truncate(content, length=100, suffix='...'):
