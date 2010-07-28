@@ -11,7 +11,7 @@ class DomainMiddleware:
         host = request.get_host().replace('www.', '')
         domain_pieces = host.split('.')
         
-        if len(domain_pieces) < 2:
+        if len(domain_pieces) <= 2:
             domain = host.strip()
             subdomain = ''
         else:
