@@ -1,4 +1,5 @@
 from django.contrib.sites.models import Site
+from django.http import Http404
 
 class DomainMiddleware:
     
@@ -24,3 +25,10 @@ class DomainMiddleware:
         else:
             request.domain = host
         
+class LockdownMiddleware:
+
+    def process_view(self, request, *args, **kwargs):
+        if not "/admin/" in request.META['PATH_INFO'] and not request.user.is_authenticated():
+            raise Http404
+        return None
+
