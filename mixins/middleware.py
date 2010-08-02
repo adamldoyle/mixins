@@ -28,7 +28,7 @@ class DomainMiddleware:
 class LockdownMiddleware:
 
     def process_view(self, request, *args, **kwargs):
-        if not "/admin/" in request.META['PATH_INFO'] and not request.user.is_authenticated():
+        if not "/admin/" in request.META['PATH_INFO'] and not request.user.is_staff:
             raise Http404
         return None
 
