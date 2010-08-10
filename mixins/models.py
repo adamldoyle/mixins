@@ -120,12 +120,20 @@ class IPMixin(models.Model):
     class Meta:
         abstract = True
 
-class LocationMixin(models.Model):
+class SimpleLocationMixin(models.Model):
+    city = models.CharField(max_length=50)
+    state = models.CharField(max_length=50)
+    
+    class Meta:
+        abstract = True
+        
+    def simpleAddress(self):
+        return ', '.join([field for field in (self.city, self.state) if field != ''])
+
+class LocationMixin(SimpleLocationMixin):
     """Uses Google geocoder to determine latitude/longitude for model during save."""
     address = models.CharField(max_length=100)
     address2 = models.CharField(max_length=100, blank=True)
-    city = models.CharField(max_length=50)
-    state = models.CharField(max_length=50)
     zip = models.CharField(max_length=12)
     country = models.CharField(max_length=50, default='US')
     latitude = models.FloatField(default=0)
