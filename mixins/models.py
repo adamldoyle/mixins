@@ -85,6 +85,49 @@ class BaseMixin(models.Model):
     
     class Meta:
         abstract = True
+
+class DictionaryField(models.Field):
+
+    __metaclass__ = models.SubfieldBase
+
+    def to_python(self, value):
+        if isinstance(value, dict) or value == '':
+            return value
+        return simplejson.loads(value)
+    
+    def get_db_prep_value(self, value):
+        if value == '':
+            return value
+        return simplejson.dumps(value)
+    
+    def get_db_prep_lookup(self, lookup_type, value):
+        if lookup_type != 'contains' and lookup_type != 'icontains':
+            raise TypeError('Lookup type %r not supported.' % lookup_type)
+        elif not isinstance(value, str) and not isinstance(value, unicode) and not isinstance(value, tuple) and not isinstance(value, list) and not isinstance(value, dict):
+            raise ValueError('Must pass a string, tuple, list or dictionary.')
+        
+        if isinstance(value, str) or isinstance(value, unicode):
+            return ['%s%s%s' % ('%', value, '%')]
+        elif isinstance(value, dict):
+            if len(value) != 1:
+                raise ValueError('Input must be of length one.')
+            return ['%s"%s": "%s"%s' % ('%', value.keys()[0], value[value.keys()[0]], '%')]
+        else:
+            if len(value) != 2:
+                raise ValueError('Input must be of length two.')
+            return ['%s"%s": "%s"%s' % ('%', value[0], value[1], '%')]
+    
+    def get_internal_type(self):
+        return 'TextField'
+
+from south.modelsinspector import add_introspection_rules
+add_introspection_rules([
+    (
+        [DictionaryField],
+        [],
+        {},
+    ),
+], ["^mixins\.models\.DictionaryField"])
         
 class DeleteMixin(BaseMixin):
     """Implements soft deletes which will only be available from the admin section."""
